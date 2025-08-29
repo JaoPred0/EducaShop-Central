@@ -1,12 +1,92 @@
-# React + Vite
+# 📚 EducaShop Central
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Transformando a educação através de **materiais didáticos inovadores** e soluções pedagógicas personalizadas para professores e educadores.  
+Nossa missão é tornar o ensino **mais prático, acessível e eficiente**, ajudando professores em todo o Brasil.
 
-Currently, two official plugins are available:
+---
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## 🚀 Nossa Missão
+Somos uma **loja online especializada** em materiais educacionais, dedicada a **revolucionar a forma como professores e educadores** acessam conteúdos de qualidade.  
 
-## Expanding the ESLint configuration
+Oferecemos:
+- 📘 Livros digitais e apostilas  
+- 📝 Atividades prontas e simulados  
+- 🎯 Conteúdos pedagógicos personalizados  
+- 💡 Suporte especializado  
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+---
+
+## 🏆 Conquistas
+- 👩‍🏫 **+2.500 professores atendidos**  
+- 📥 **15.000+ downloads realizados**  
+- 📖 **850+ materiais disponíveis**  
+- ⭐ **Avaliação média: 4.9 estrelas**  
+
+---
+
+## 📦 Nossos Serviços
+
+### 📘 Materiais Didáticos
+Livros digitais, apostilas e conteúdos educativos de alta qualidade para todos os níveis de ensino.  
+✔ Apostilas completas  
+✔ Livros interativos  
+✔ Conteúdo atualizado  
+
+---
+
+### 📝 Atividades Prontas
+Atividades práticas e simulados prontos para sala de aula ou estudo em casa.  
+✔ Exercícios com gabarito  
+✔ Jogos educativos  
+✔ Projetos temáticos  
+
+---
+
+### 🏅 Simulados e Provas
+Modelos completos para preparação de exames e avaliações.  
+✔ Simulados ENEM e vestibulares  
+✔ Provas por disciplina  
+✔ Questões comentadas  
+
+---
+
+### ❤️ Suporte Personalizado
+Atendimento dedicado e materiais customizados conforme sua necessidade.  
+✔ Atendimento via WhatsApp  
+✔ Consultoria pedagógica  
+✔ Suporte técnico 24/7  
+
+---
+
+## 💬 Depoimentos
+
+> ⭐⭐⭐⭐⭐  
+> *"Os materiais são incríveis! Economizo horas de preparação e meus alunos adoram as atividades."*  
+> — Maria Silva, Professora de Matemática  
+
+> ⭐⭐⭐⭐⭐  
+> *"Qualidade excepcional! Comprei vários simulados e apostilas. O suporte é rápido e os materiais são bem estruturados."*  
+> — João Santos, Coordenador Pedagógico  
+
+> ⭐⭐⭐⭐⭐  
+> *"Transformou minha forma de ensinar! As atividades são criativas e os alunos ficam mais engajados. Vale cada centavo!"*  
+> — Ana Costa, Professora do Ensino Fundamental  
+
+---
+
+## 📲 Contato
+
+🌐 **Redes Sociais**  
+- [Instagram](https://www.instagram.com/educashop.central)  
+- [TikTok](https://www.tiktok.com/@educashop.central)  
+
+📧 **E-mail**: [educashopcentral@gmail.com](mailto:educashopcentral@gmail.com)  
+📞 **Telefone/WhatsApp**: (67) 99661-0494  
+
+---
+
+## ⚡ Versão
+**EducaShop Central v1.5**  
+Sua parceira na jornada educacional.  
+
+---
