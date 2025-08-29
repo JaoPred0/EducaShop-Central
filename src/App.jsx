@@ -17,9 +17,9 @@ import ProtectedRoute from './components/ProtectedRoute';
 import AddProductPage from './components/admin/AddProductPage';
 import EditProductPage from './components/admin/EditProductPage';
 import CheckoutPage from './pages/CheckoutPage';
-import Sobre from './pages/Sobre';
 import VerifyEmailPage from './pages/VerifyEmailPage';
 import ResetPasswordPage from './pages/ResetPasswordPage';
+import Sobre from './pages/Sobre';
 
 export default function App() {
   const [user, setUser] = useState(null);
