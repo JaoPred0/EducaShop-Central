@@ -9,8 +9,10 @@ import {
   signInWithPopup,
   updateProfile,
   signOut,
+  sendEmailVerification,
+  sendPasswordResetEmail
 } from "firebase/auth";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import toast, { Toaster } from "react-hot-toast";
 
 const AuthPage = ({ clearCart }) => {
@@ -39,18 +41,44 @@ const AuthPage = ({ clearCart }) => {
     }
   };
 
+  const handleForgotPassword = async () => {
+    if (!email) {
+      toast.error("Informe seu e-mail para redefinir a senha.");
+      return;
+    }
+
+    try {
+      await sendPasswordResetEmail(auth, email);
+      toast.success("E-mail de redefinição enviado! Verifique sua caixa de entrada.");
+    } catch (error) {
+      toast.error("Erro ao enviar e-mail: " + error.message);
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+
     try {
       if (isLogin) {
-        await signInWithEmailAndPassword(auth, email, password);
+        const userCred = await signInWithEmailAndPassword(auth, email, password);
+        const user = userCred.user;
+
+        if (!user.emailVerified) {
+          toast.error("Verifique seu e-mail antes de entrar!");
+          await auth.signOut();
+          return;
+        }
+
         toast.success("Login realizado com sucesso!");
-        navigate("/profile");
+        navigate("/dashboard");
       } else {
         const userCred = await createUserWithEmailAndPassword(auth, email, password);
         await updateProfile(userCred.user, { displayName: name });
-        toast.success("Conta criada com sucesso!");
-        navigate("/profile");
+        await sendEmailVerification(userCred.user);
+
+        toast.success("Conta criada! Verifique seu e-mail para ativar a conta.");
+        setIsLogin(true);
+        navigate("/verify-email");
       }
     } catch (error) {
       toast.error(getFriendlyErrorMessage(error.code));
@@ -60,9 +88,16 @@ const AuthPage = ({ clearCart }) => {
   const handleGoogleAuth = async () => {
     try {
       const provider = new GoogleAuthProvider();
-      await signInWithPopup(auth, provider);
+      const userCred = await signInWithPopup(auth, provider);
+
+      if (!userCred.user.emailVerified) {
+        toast.error("Verifique seu e-mail antes de entrar!");
+        await auth.signOut();
+        return;
+      }
+
       toast.success("Login com Google realizado!");
-      navigate("/profile");
+      navigate("/dashboard");
     } catch (error) {
       toast.error(getFriendlyErrorMessage(error.code));
     }
@@ -111,7 +146,7 @@ const AuthPage = ({ clearCart }) => {
               animate={{ y: 0, opacity: 1 }}
               transition={{ delay: 0.4, duration: 0.5 }}
             >
-              {isLogin ? "Bem-vindo de volta!" : "Crie sua conta"}
+              {isLogin ? "Login" : "Crie sua conta"}
             </motion.h2>
 
             <form onSubmit={handleSubmit} className="space-y-6">
@@ -152,6 +187,18 @@ const AuthPage = ({ clearCart }) => {
                   required
                 />
               </div>
+
+              {isLogin && (
+                <p className="text-right mt-2">
+                  <Link
+                    to="/reset-password"
+                    className="text-blue-600 font-semibold hover:underline"
+                  >
+                    Esqueci minha senha
+                  </Link>
+                </p>
+              )}
+
 
               <motion.button
                 type="submit"

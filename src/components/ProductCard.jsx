@@ -4,10 +4,6 @@ import { Star } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 const ProductCard = ({ product }) => {
-  // imagem principal com fallback
-  const productImage =
-    product.image || product.images?.[0] || "https://via.placeholder.com/300x200";
-
   // preço tratado
   const productPrice =
     product.price !== undefined
@@ -27,10 +23,11 @@ const ProductCard = ({ product }) => {
       <Link to={`/products/${product.id}`}>
         {/* Imagem */}
         <img
-          src={productImage}
-          alt={product.name || "Produto"}
-          className="w-full h-48 object-cover"
+          src={product.image}
+          alt={product.name}
+          className="w-full h-32 sm:h-40 object-cover rounded"
         />
+
 
         {/* Conteúdo */}
         <div className="p-5">
@@ -40,14 +37,6 @@ const ProductCard = ({ product }) => {
           <p className="text-sm text-gray-500 mb-3">
             {product.category || "Sem categoria"}
           </p>
-
-          {/* Avaliação */}
-          <div className="flex items-center mb-3">
-            <Star className="w-4 h-4 text-yellow-400 fill-yellow-400 mr-1" />
-            <span className="text-gray-600 text-sm">
-              {product.reviews || 0} avaliações
-            </span>
-          </div>
 
           {/* Preço */}
           <div className="flex items-center justify-between">

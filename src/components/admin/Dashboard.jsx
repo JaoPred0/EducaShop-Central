@@ -1,142 +1,180 @@
-import React from 'react';
+// src/pages/admin/DashboardCompleto.jsx
+import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { DollarSign, ShoppingCart, Package, Users, TrendingUp, Calendar } from 'lucide-react';
-import StatsCard from './StatsCard';
-import { formatCurrency, formatNumber } from '../../utils/formatters';
+import { DollarSign, ShoppingCart, Users, Package, Calendar, TrendingUp } from 'lucide-react';
+import { Line, Bar } from 'react-chartjs-2';
+import { collection, query, orderBy, onSnapshot, getDocs } from 'firebase/firestore';
+import { db } from '../../firebase/firebase';
+import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, BarElement, Title, Tooltip, Legend } from 'chart.js';
 
-const DashboardAdmin = () => {
+ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, BarElement, Title, Tooltip, Legend);
+
+// Card de métricas
+const StatsCard = ({ title, value, icon: Icon, color }) => (
+  <motion.div className="p-6 rounded-xl shadow-lg bg-white border border-gray-200 flex items-center gap-4" whileHover={{ scale: 1.05 }}>
+    <div className={`p-3 rounded-full bg-${color}-100 text-${color}-600`}>
+      <Icon className="w-6 h-6" />
+    </div>
+    <div>
+      <p className="text-gray-500 text-sm">{title}</p>
+      <p className="text-xl font-bold">{value}</p>
+    </div>
+  </motion.div>
+);
+
+// Gráfico de receita anual por mês
+const RevenueChart = ({ monthlyRevenue }) => {
+  const chartData = {
+    labels: Object.keys(monthlyRevenue),
+    datasets: [
+      {
+        label: 'Receita',
+        data: Object.values(monthlyRevenue),
+        borderColor: '#4F46E5',
+        backgroundColor: 'rgba(79, 70, 229, 0.3)',
+        tension: 0.4
+      }
+    ]
+  };
+  const chartOptions = {
+    responsive: true,
+    plugins: { legend: { display: false }, title: { display: true, text: 'Receita por Mês' } }
+  };
+  return <div className="bg-white p-6 rounded-xl shadow-lg"><Line data={chartData} options={chartOptions} /></div>;
+};
+
+// Gráfico de pedidos por dia do mês
+const OrdersPerDayChart = ({ dailyOrders }) => {
+  const chartData = {
+    labels: Object.keys(dailyOrders),
+    datasets: [
+      {
+        label: 'Pedidos',
+        data: Object.values(dailyOrders),
+        backgroundColor: 'rgba(16, 185, 129, 0.7)' // verde
+      }
+    ]
+  };
+  const chartOptions = {
+    responsive: true,
+    plugins: { legend: { display: false }, title: { display: true, text: 'Pedidos por Dia (Mês Atual)' } }
+  };
+  return <div className="bg-white p-6 rounded-xl shadow-lg"><Bar data={chartData} options={chartOptions} /></div>;
+};
+
+// Pedidos recentes
+const RecentOrders = ({ orders }) => (
+  <div className="bg-white rounded-xl shadow-lg p-6 space-y-4">
+    <h2 className="text-lg font-bold mb-4">Pedidos Recentes</h2>
+    {orders.map(order => (
+      <div key={order.id} className="flex justify-between items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition">
+        <p>{order.customerName}</p>
+        <p className="font-semibold">R$ {order.total.toFixed(2)}</p>
+        <span className={`px-3 py-1 rounded-full text-xs ${order.status === 'Concluído' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>
+          {order.status}
+        </span>
+      </div>
+    ))}
+  </div>
+);
+
+// Notificações
+const NotificationsCard = ({ notifications }) => (
+  <div className="bg-white p-6 rounded-xl shadow-lg">
+    <h2 className="text-lg font-bold mb-4">Notificações</h2>
+    <ul className="space-y-2">
+      {notifications.map((note, i) => (
+        <li key={i} className="text-gray-600 text-sm">{note}</li>
+      ))}
+    </ul>
+  </div>
+);
+
+const DashboardCompleto = () => {
+  const [orders, setOrders] = useState([]);
+  const [monthlyRevenue, setMonthlyRevenue] = useState({});
+  const [dailyOrders, setDailyOrders] = useState({});
+  const [totalRevenue, setTotalRevenue] = useState(0);
+  const [totalProducts, setTotalProducts] = useState(0);
+
+  useEffect(() => {
+    // Pedidos do Firebase
+    const q = query(collection(db, 'orders'), orderBy('createdAt', 'desc'));
+    const unsub = onSnapshot(q, snapshot => {
+      const completedOrders = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))
+        .filter(order => order.status === 'Concluído');
+
+      setOrders(completedOrders.slice(0, 5));
+
+      // Total ganho
+      setTotalRevenue(completedOrders.reduce((acc, order) => acc + order.total, 0));
+
+      // Receita por mês
+      const revenueByMonth = {};
+      const currentYear = new Date().getFullYear();
+      completedOrders.forEach(order => {
+        const date = new Date(order.createdAt?.toDate());
+        if (date.getFullYear() === currentYear) {
+          const month = date.toLocaleString('pt-BR', { month: 'short' });
+          revenueByMonth[month] = (revenueByMonth[month] || 0) + order.total;
+        }
+      });
+      setMonthlyRevenue(revenueByMonth);
+
+      // Pedidos por dia no mês atual
+      const daily = {};
+      const currentMonth = new Date().getMonth();
+      completedOrders.forEach(order => {
+        const date = new Date(order.createdAt?.toDate());
+        if (date.getMonth() === currentMonth) {
+          const day = date.getDate();
+          daily[day] = (daily[day] || 0) + 1;
+        }
+      });
+      setDailyOrders(daily);
+    });
+
+    // Produtos
+    const fetchProducts = async () => {
+      const snapshot = await getDocs(collection(db, 'products'));
+      setTotalProducts(snapshot.size);
+    };
+    fetchProducts();
+
+    return () => unsub();
+  }, []);
+
+  const notifications = orders.map(order => `Pedido ${order.id} finalizado por R$ ${order.total.toFixed(2)}`);
+
   return (
-    <motion.div 
-      className="p-6 space-y-6"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 0.5 }}
-    >
+    <motion.div className="p-6 space-y-6" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
-          <p className="text-gray-600 mt-1">Visão geral das suas vendas e métricas</p>
+          <h1 className="text-3xl font-bold text-gray-900">Dashboard Completo</h1>
+          <p className="text-gray-600 mt-1">Visão geral das vendas e métricas</p>
         </div>
-        <motion.div 
-          className="flex items-center gap-2 px-4 py-2 bg-blue-50 rounded-xl border border-blue-200"
-          initial={{ scale: 0 }}
-          animate={{ scale: 1 }}
-          transition={{ delay: 0.3 }}
-        >
-          <Calendar className="w-5 h-5 text-blue-600" />
-          <span className="text-blue-700 font-medium">Hoje</span>
-        </motion.div>
       </div>
 
+      {/* Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <StatsCard
-          title="Receita Total"
-          // value={formatCurrency(totalRevenue)}
-          change={12.5}
-          icon={DollarSign}
-          color="green"
-          index={0}
-        />
-        <StatsCard
-          title="Total de Pedidos"
-          // value={formatNumber(totalOrders)}
-          change={8.2}
-          icon={ShoppingCart}
-          color="blue"
-          index={1}
-        />
-        <StatsCard
-          title="Produtos Ativos"
-          // value={formatNumber(totalProducts)}
-          change={-2.1}
-          icon={Package}
-          color="purple"
-          index={2}
-        />
-        <StatsCard
-          title="Clientes Ativos"
-          // value={formatNumber(totalCustomers)}
-          change={15.3}
-          icon={Users}
-          color="orange"
-          index={3}
-        />
+        <StatsCard title="Receita Total" value={`R$ ${totalRevenue.toFixed(2)}`} icon={DollarSign} color="green" />
+        <StatsCard title="Total de Pedidos" value={orders.length} icon={ShoppingCart} color="blue" />
+        <StatsCard title="Produtos na Loja" value={totalProducts} icon={Package} color="purple" />
       </div>
 
+      {/* Gráficos */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <motion.div 
-          className="bg-white/90 backdrop-blur-xl border border-gray-200/50 rounded-2xl p-6 shadow-lg"
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ delay: 0.4 }}
-        >
-          <div className="flex items-center gap-3 mb-6">
-            <TrendingUp className="w-6 h-6 text-blue-500" />
-            <h2 className="text-xl font-bold text-gray-900">Vendas Mensais</h2>
-          </div>
-          
-          <div className="space-y-4">
-            {/* {monthlyData.slice(-3).map((month, index) => (
-              <div key={month.month} className="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
-                <div>
-                  <p className="font-semibold text-gray-900">{month.month}</p>
-                  <p className="text-sm text-gray-600">{month.orders} pedidos</p>
-                </div>
-                <div className="text-right">
-                  <p className="font-bold text-lg text-gray-900">{formatCurrency(month.sales)}</p>
-                  <div className="w-24 h-2 bg-gray-200 rounded-full mt-2">
-                    <div 
-                      className="h-full bg-gradient-to-r from-blue-500 to-purple-600 rounded-full"
-                      style={{ width: `${(month.sales / 70000) * 100}%` }}
-                    />
-                  </div>
-                </div>
-              </div>
-            ))} */}
-          </div>
-        </motion.div>
+        <RevenueChart monthlyRevenue={monthlyRevenue} />
+        <OrdersPerDayChart dailyOrders={dailyOrders} />
+      </div>
 
-        <motion.div 
-          className="bg-white/90 backdrop-blur-xl border border-gray-200/50 rounded-2xl p-6 shadow-lg"
-          initial={{ opacity: 0, x: 20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ delay: 0.5 }}
-        >
-          <div className="flex items-center gap-3 mb-6">
-            <ShoppingCart className="w-6 h-6 text-green-500" />
-            <h2 className="text-xl font-bold text-gray-900">Vendas Recentes</h2>
-          </div>
-          
-          <div className="space-y-4">
-            {/* {recentSales.map((sale, index) => (
-              <motion.div 
-                key={sale.id}
-                className="flex items-center justify-between p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors"
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.6 + index * 0.1 }}
-              >
-                <div>
-                  <p className="font-semibold text-gray-900">{sale.customerName}</p>
-                  <p className="text-sm text-gray-600">{sale.products.length} produto(s)</p>
-                </div>
-                <div className="text-right">
-                  <p className="font-bold text-green-600">{formatCurrency(sale.total)}</p>
-                  <span className={`text-xs px-2 py-1 rounded-full ${
-                    sale.status === 'completed' 
-                      ? 'bg-green-100 text-green-700' 
-                      : 'bg-yellow-100 text-yellow-700'
-                  }`}>
-                    {sale.status === 'completed' ? 'Concluído' : 'Pendente'}
-                  </span>
-                </div>
-              </motion.div>
-            ))} */}
-          </div>
-        </motion.div>
+      {/* Pedidos recentes e notificações */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <RecentOrders orders={orders} />
+        <NotificationsCard notifications={notifications} />
       </div>
     </motion.div>
   );
 };
 
-export default DashboardAdmin;
+export default DashboardCompleto;

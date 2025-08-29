@@ -79,24 +79,24 @@ const HomePage = () => {
         </motion.h2>
 
         {loading ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {[...Array(4)].map((_, i) => (
               <div
                 key={i}
                 className="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-200/50 animate-pulse"
               >
-                <div className="w-full h-48 bg-gray-200"></div>
-                <div className="p-5">
-                  <div className="h-6 bg-gray-200 rounded w-3/4 mb-2"></div>
-                  <div className="h-4 bg-gray-200 rounded w-1/2 mb-3"></div>
-                  <div className="h-4 bg-gray-200 rounded w-1/4 mb-3"></div>
+                <div className="w-full h-32 sm:h-40 bg-gray-200"></div>
+                <div className="p-3">
+                  <div className="h-5 bg-gray-200 rounded w-3/4 mb-2"></div>
+                  <div className="h-4 bg-gray-200 rounded w-1/2 mb-2"></div>
+                  <div className="h-4 bg-gray-200 rounded w-1/4"></div>
                 </div>
               </div>
             ))}
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-            {featuredProducts.map((product, index) => (
+          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {featuredProducts.map((product) => (
               <ProductCard key={product.id} product={product} />
             ))}
           </div>
@@ -112,6 +112,7 @@ const HomePage = () => {
           </Link>
         </motion.div>
       </section>
+
     </motion.div>
   );
 };

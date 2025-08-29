@@ -16,14 +16,12 @@ export const CartProvider = ({ children }) => {
       if (user) {
         setUserId(user.uid);
 
-        // Pega carrinho do Firebase
         const cartRef = doc(db, 'carts', user.uid);
         const cartSnap = await getDoc(cartRef);
 
         if (cartSnap.exists()) {
           setCartItems(cartSnap.data().items || []);
         } else {
-          // Cria carrinho vazio se não existir
           await setDoc(cartRef, { items: [] });
           setCartItems([]);
         }
@@ -36,14 +34,12 @@ export const CartProvider = ({ children }) => {
     return () => unsubscribe();
   }, []);
 
-  // Função para salvar carrinho
   const saveCartToFirebase = async (items) => {
     if (!userId) return;
     const cartRef = doc(db, 'carts', userId);
     await setDoc(cartRef, { items }, { merge: true });
   };
 
-  // Atualiza Firebase sempre que cartItems mudar
   useEffect(() => {
     saveCartToFirebase(cartItems);
   }, [cartItems]);
@@ -75,9 +71,18 @@ export const CartProvider = ({ children }) => {
 
   const cartTotal = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
+  const cartCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
+
   return (
     <CartContext.Provider
-      value={{ cartItems, addToCart, removeFromCart, updateQuantity, cartTotal }}
+      value={{
+        cartItems,
+        addToCart,
+        removeFromCart,
+        updateQuantity,
+        cartTotal,
+        cartCount, // <-- agora disponível
+      }}
     >
       {children}
     </CartContext.Provider>

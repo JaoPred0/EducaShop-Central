@@ -140,7 +140,7 @@ const SearchPage = () => {
           <div className="md:col-span-2">
             <label className="block text-gray-700 text-sm font-bold mb-2">Avaliação Mínima:</label>
             <div className="flex gap-1">
-              {[1,2,3,4,5].map(star => (
+              {[1, 2, 3, 4, 5].map(star => (
                 <motion.button key={star} type="button" onClick={() => setMinRating(star)} className={`p-2 rounded-full ${minRating >= star ? 'text-yellow-400 fill-yellow-400' : 'text-gray-300'}`} whileHover={{ scale: 1.2 }} whileTap={{ scale: 0.9 }}>
                   <Star className="w-6 h-6" />
                 </motion.button>
@@ -154,10 +154,10 @@ const SearchPage = () => {
       {loading && <motion.div className="text-center py-12 text-blue-600 text-lg">Buscando conhecimento...</motion.div>}
 
       {!loading && searchResults.length > 0 && (
-        <motion.div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
+        <motion.div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
           {searchResults.map((product, index) => (
-            <motion.div key={product.id} initial={{ opacity:0, y:20 }} animate={{ opacity:1, y:0 }} transition={{ delay:0.1*index + 0.2 }}>
-              <ProductCard product={product} />
+            <motion.div key={product.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 * index + 0.2 }}>
+              <ProductCard product={product} className="w-full h-full" />
             </motion.div>
           ))}
         </motion.div>

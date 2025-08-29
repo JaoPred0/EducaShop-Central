@@ -50,11 +50,10 @@ const ProductsPage = () => {
           <motion.button
             key={category}
             onClick={() => setSelectedCategory(category)}
-            className={`px-5 py-2 rounded-full font-medium text-sm transition-all duration-300 flex items-center gap-2 ${
-              selectedCategory === category
+            className={`px-5 py-2 rounded-full font-medium text-sm transition-all duration-300 flex items-center gap-2 ${selectedCategory === category
                 ? 'bg-blue-600 text-white shadow-md'
                 : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-            }`}
+              }`}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
           >
@@ -68,32 +67,33 @@ const ProductsPage = () => {
       </motion.div>
 
       {/* Lista de produtos */}
+      {/* Lista de produtos */}
       {loading ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
+        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
           {[...Array(8)].map((_, i) => (
             <div key={i} className="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-200/50 animate-pulse">
-              <div className="w-full h-48 bg-gray-200"></div>
-              <div className="p-5">
-                <div className="h-6 bg-gray-200 rounded w-3/4 mb-2"></div>
-                <div className="h-4 bg-gray-200 rounded w-1/2 mb-3"></div>
-                <div className="h-4 bg-gray-200 rounded w-1/4 mb-3"></div>
+              <div className="w-full h-32 sm:h-40 bg-gray-200"></div>
+              <div className="p-3">
+                <div className="h-5 bg-gray-200 rounded w-3/4 mb-2"></div>
+                <div className="h-4 bg-gray-200 rounded w-1/2 mb-2"></div>
+                <div className="h-4 bg-gray-200 rounded w-1/4 mb-2"></div>
                 <div className="flex justify-between items-center">
-                  <div className="h-6 bg-gray-200 rounded w-1/3"></div>
-                  <div className="h-10 bg-gray-200 rounded-lg w-1/4"></div>
+                  <div className="h-5 bg-gray-200 rounded w-1/3"></div>
+                  <div className="h-8 bg-gray-200 rounded-lg w-1/4"></div>
                 </div>
               </div>
             </div>
           ))}
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
+        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
           {filteredProducts.map((product, index) => (
             <motion.div
               key={product.id}
-              className="bg-white rounded-xl shadow p-4 relative group cursor-pointer overflow-hidden"
+              className="bg-white rounded-xl shadow p-3 relative group cursor-pointer overflow-hidden"
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 0.1 * index, duration: 0.4 }}
+              transition={{ delay: 0.05 * index, duration: 0.3 }}
               onClick={() => navigate(`/products/${product.id}`)}
             >
               {/* Imagem */}
@@ -101,31 +101,35 @@ const ProductsPage = () => {
                 <img
                   src={product.image}
                   alt={product.name}
-                  className="w-full h-48 object-cover rounded-lg mb-3"
+                  className="w-full h-32 sm:h-40 object-cover rounded-lg mb-2"
                 />
               ) : (
-                <div className="h-48 w-full bg-gray-100 rounded-lg mb-3 flex items-center justify-center text-gray-400">
+                <div className="h-32 sm:h-40 w-full bg-gray-100 rounded-lg mb-2 flex items-center justify-center text-gray-400">
                   Sem imagem
                 </div>
               )}
 
-              <h3 className="font-bold">{product.name}</h3>
-              <p className="text-gray-600">{product.category}</p>
-              <p className="text-green-600 font-bold">R$ {product.price?.toFixed(2)}</p>
-              <p className="text-gray-700">Estoque: {product.stock}</p>
+              <h3 className="font-bold text-sm sm:text-base">{product.name}</h3>
+              <p className="text-gray-600 text-xs sm:text-sm">{product.category}</p>
+              <p className="text-green-600 font-bold text-sm">R$ {product.price?.toFixed(2)}</p>
+              <p className="text-gray-700 text-xs">Estoque: {product.stock}</p>
 
-              <div className="flex gap-2 mt-3 opacity-0 group-hover:opacity-100 transition-opacity">
+              <div className="flex gap-2 mt-2 opacity-0 group-hover:opacity-100 transition-opacity">
                 <button
-                  className="bg-gray-100 text-gray-600 px-3 py-1 rounded flex items-center"
-                  onClick={() => navigate(`/products/${product.id}`)}
+                  className="bg-gray-100 text-gray-600 px-2 py-1 rounded flex items-center text-xs sm:text-sm"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    navigate(`/products/${product.id}`);
+                  }}
                 >
-                  Ver Mais <Eye className="ml-1 w-4 h-4" />
+                  Ver Mais <Eye className="ml-1 w-3 h-3 sm:w-4 sm:h-4" />
                 </button>
               </div>
             </motion.div>
           ))}
         </div>
       )}
+
 
       {!loading && filteredProducts.length === 0 && (
         <motion.div className="text-center py-12 text-gray-600 text-lg">

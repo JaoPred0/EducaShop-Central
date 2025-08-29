@@ -2,10 +2,20 @@ import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Package, CheckCircle, XCircle, Download, ShoppingCart, User, Tag, DollarSign, List } from 'lucide-react';
 import { db } from '../../firebase/firebase';
-import { collection, query, orderBy, onSnapshot, doc, updateDoc } from 'firebase/firestore';
+import { collection, query, orderBy, onSnapshot, doc, updateDoc, deleteDoc } from 'firebase/firestore';
 
 export default function DashboardOrders() {
   const [orders, setOrders] = useState([]);
+  const handleRemoveOrder = async (orderId) => {
+    if (!window.confirm('Deseja realmente remover este pedido?')) return;
+    try {
+      await deleteDoc(doc(db, 'orders', orderId));
+      alert('Pedido removido com sucesso!');
+    } catch (error) {
+      console.error(error);
+      alert('Erro ao remover o pedido.');
+    }
+  };
 
   useEffect(() => {
     // Se você tiver o Firebase configurado, descomente e use o código abaixo:
@@ -186,6 +196,15 @@ export default function DashboardOrders() {
                       >
                         <CheckCircle className="w-5 h-5" />
                         Finalizar Pedido
+                      </motion.button>
+                      <motion.button
+                        onClick={() => handleRemoveOrder(order.id)}
+                        className="flex items-center gap-2 px-5 py-2 bg-red-500 text-white font-semibold rounded-xl shadow-md hover:shadow-lg hover:scale-105 transition-all duration-300"
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                      >
+                        <XCircle className="w-5 h-5" />
+                        Remover Pedido
                       </motion.button>
                     </div>
                   </div>
