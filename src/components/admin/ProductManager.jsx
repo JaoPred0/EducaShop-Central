@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Eye, Edit, Trash2 } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
 import { db } from '../../firebase/firebase';
 import { collection, getDocs, deleteDoc, doc } from 'firebase/firestore';
+import { useNavigate } from 'react-router-dom';
+import ProductCard from '../../components/ProductCard';
 
 const ProductsPage = () => {
   const [products, setProducts] = useState([]);
@@ -31,7 +31,7 @@ const ProductsPage = () => {
     if (window.confirm('Tem certeza que deseja apagar este produto?')) {
       try {
         await deleteDoc(doc(db, 'products', id));
-        fetchProducts(); // atualiza a lista após deletar
+        fetchProducts();
       } catch (error) {
         console.error('Erro ao apagar produto:', error);
       }
@@ -39,7 +39,6 @@ const ProductsPage = () => {
   };
 
   const categories = ['all', ...new Set(products.map(p => p.category))];
-
   const filteredProducts = selectedCategory === 'all'
     ? products
     : products.filter(p => p.category === selectedCategory);
@@ -62,8 +61,11 @@ const ProductsPage = () => {
           <button
             key={cat}
             onClick={() => setSelectedCategory(cat)}
-            className={`px-4 py-2 rounded-full text-sm ${selectedCategory === cat ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-              }`}
+            className={`px-4 py-2 rounded-full text-sm ${
+              selectedCategory === cat
+                ? 'bg-blue-600 text-white'
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+            }`}
           >
             {cat === 'all' ? 'Todas' : cat}
           </button>
@@ -76,39 +78,26 @@ const ProductsPage = () => {
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
           {filteredProducts.map(product => (
-            <div key={product.id} className="bg-white rounded-2xl shadow-lg overflow-hidden flex flex-col">
-              {product.image ? (
-                <img src={product.image} alt={product.name} className="w-full h-48 object-cover" />
-              ) : (
-                <div className="w-full h-48 bg-gray-100 flex items-center justify-center text-gray-400">
-                  Sem imagem
-                </div>
-              )}
+            <div key={product.id} className="flex flex-col">
+              {/* Usa o ProductCard para exibir imagem/nome */}
+              <ProductCard product={product} />
 
-              <div className="p-4 flex flex-col justify-between flex-1">
-                <div>
-                  <h3 className="font-bold text-gray-900">{product.name}</h3>
-                  <p className="text-sm text-gray-600">{product.category}</p>
-                  <p className="font-bold text-green-600">R$ {product.price?.toFixed(2)}</p>
-                </div>
-
-                <div className="flex gap-2 mt-4">
-                  <button
-                    onClick={() => navigate(`/edit-product/${product.id}`)}
-                    className="flex-1 bg-yellow-400 text-white py-2 rounded-lg hover:bg-yellow-500 flex items-center justify-center gap-1"
-                  >
-                    Editar
-                  </button>
-                  <button
-                    onClick={() => handleDelete(product.id)}
-                    className="flex-1 bg-red-500 text-white py-2 rounded-lg hover:bg-red-600 flex items-center justify-center gap-1"
-                  >
-                    Apagar
-                  </button>
-                </div>
+              {/* Botões de ação */}
+              <div className="flex gap-2 mt-3">
+                <button
+                  onClick={() => navigate(`/edit-product/${product.id}`)}
+                  className="flex-1 bg-yellow-400 text-white py-2 rounded-lg hover:bg-yellow-500"
+                >
+                  Editar
+                </button>
+                <button
+                  onClick={() => handleDelete(product.id)}
+                  className="flex-1 bg-red-500 text-white py-2 rounded-lg hover:bg-red-600"
+                >
+                  Apagar
+                </button>
               </div>
             </div>
-
           ))}
         </div>
       )}

@@ -10,6 +10,7 @@ const ProductsPage = () => {
   const [loading, setLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState('all');
 
+  // Busca os produtos no Firestore
   useEffect(() => {
     const fetchProducts = async () => {
       setLoading(true);
@@ -19,20 +20,26 @@ const ProductsPage = () => {
         setProducts(fetched);
       } catch (error) {
         console.error("Erro ao buscar produtos:", error);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     };
+
     fetchProducts();
   }, []);
 
-  const categories = ['all', ...new Set(products.map(p => p.category))];
+  // Cria categorias únicas
+  const categories = ['all', ...new Set(products.map(p => p.category).filter(Boolean))];
 
-  const filteredProducts = selectedCategory === 'all'
-    ? products
-    : products.filter(product => product.category === selectedCategory);
+  // Filtra os produtos por categoria
+  const filteredProducts =
+    selectedCategory === 'all'
+      ? products
+      : products.filter(product => product.category === selectedCategory);
 
   return (
     <motion.div className="container mx-auto px-4 py-8">
+      {/* Título */}
       <motion.h1
         className="text-4xl font-bold text-gray-800 mb-8 text-center"
         initial={{ y: -20, opacity: 0 }}
@@ -47,14 +54,15 @@ const ProductsPage = () => {
           <motion.button
             key={category}
             onClick={() => setSelectedCategory(category)}
-            className={`px-5 py-2 rounded-full font-medium text-sm transition-all duration-300 flex items-center gap-2 ${selectedCategory === category
-              ? 'bg-blue-600 text-white shadow-md'
-              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-              }`}
+            className={`px-5 py-2 rounded-full font-medium text-sm transition-all duration-300 flex items-center gap-2 ${
+              selectedCategory === category
+                ? 'bg-blue-600 text-white shadow-md'
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+            }`}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
           >
-            {category === 'all' ? <Filter className="w-4 h-4" /> : null}
+            {category === 'all' && <Filter className="w-4 h-4" />}
             {category === 'all' ? 'Todas' : category}
             {selectedCategory === category && category !== 'all' && (
               <X className="w-4 h-4 ml-1" />
@@ -65,6 +73,7 @@ const ProductsPage = () => {
 
       {/* Lista de produtos */}
       {loading ? (
+        // Skeleton Loader
         <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
           {[...Array(8)].map((_, i) => (
             <div
@@ -92,8 +101,13 @@ const ProductsPage = () => {
         </div>
       )}
 
+      {/* Nenhum produto encontrado */}
       {!loading && filteredProducts.length === 0 && (
-        <motion.div className="text-center py-12 text-gray-600 text-lg">
+        <motion.div
+          className="text-center py-12 text-gray-600 text-lg"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+        >
           Nenhum produto encontrado nesta categoria.
         </motion.div>
       )}
