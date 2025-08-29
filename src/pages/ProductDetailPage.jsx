@@ -9,8 +9,9 @@ const ProductDetailPage = () => {
   const { id } = useParams();
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [selectedImage, setSelectedImage] = useState(null); // <- imagem selecionada
   const navigate = useNavigate();
-  const { addToCart } = useCart(); // contexto do carrinho
+  const { addToCart } = useCart();
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -38,7 +39,7 @@ const ProductDetailPage = () => {
   if (!product) return <p className="text-center py-10">Produto não encontrado!</p>;
 
   const handleBuyNow = () => {
-    navigate('/checkout', { state: { product } }); // manda direto p/ checkout
+    navigate('/checkout', { state: { product } });
   };
 
   return (
@@ -48,24 +49,38 @@ const ProductDetailPage = () => {
       animate={{ opacity: 1 }}
     >
       <div className="grid grid-cols-1 md:grid-cols-2 gap-10 items-start">
-        {/* Imagem do Produto */}
+
+        {/* Imagens do Produto */}
         <motion.div
-          className="flex justify-center"
+          className="flex flex-col gap-4 items-center"
           initial={{ scale: 0.9, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           transition={{ duration: 0.5 }}
         >
-          {product.image ? (
-              <img
-                src={product.image}
-                alt={product.name}
-                className="max-h-[350px] w-full object-contain rounded-xl shadow-lg transform hover:scale-105 transition-transform duration-500 ease-in-out"
-              />
-            ) : (
-              <div className="h-48 w-full bg-gray-100 rounded-lg flex items-center justify-center text-gray-400">
-                Sem imagem
-              </div>
-            )}
+          {product.images && product.images.length > 0 ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full">
+              {product.images.map((img, index) => (
+                <img
+                  key={index}
+                  src={img}
+                  alt={`${product.name} ${index + 1}`}
+                  onClick={() => setSelectedImage(img)} // <- abre modal
+                  className="cursor-pointer max-h-[300px] w-full object-contain rounded-xl shadow-lg transform hover:scale-105 transition-transform duration-500 ease-in-out"
+                />
+              ))}
+            </div>
+          ) : product.image ? (
+            <img
+              src={product.image}
+              alt={product.name}
+              onClick={() => setSelectedImage(product.image)}
+              className="cursor-pointer max-h-[350px] w-full object-contain rounded-xl shadow-lg transform hover:scale-105 transition-transform duration-500 ease-in-out"
+            />
+          ) : (
+            <div className="h-48 w-full bg-gray-100 rounded-lg flex items-center justify-center text-gray-400">
+              Sem imagem
+            </div>
+          )}
         </motion.div>
 
         {/* Informações do Produto */}
@@ -85,7 +100,6 @@ const ProductDetailPage = () => {
 
           {/* Botões */}
           <div className="flex flex-col sm:flex-row gap-4">
-            {/* Adicionar ao Carrinho */}
             <motion.button
               onClick={() => addToCart(product)}
               className="bg-blue-600 text-white px-6 py-3 rounded-full font-semibold shadow-md hover:bg-blue-700 transition-all"
@@ -95,7 +109,6 @@ const ProductDetailPage = () => {
               Adicionar ao Carrinho
             </motion.button>
 
-            {/* Comprar Agora */}
             <motion.button
               onClick={handleBuyNow}
               className="bg-emerald-600 text-white px-6 py-3 rounded-full font-semibold shadow-md hover:bg-emerald-700 transition-all"
@@ -107,6 +120,33 @@ const ProductDetailPage = () => {
           </div>
         </div>
       </div>
+
+      {/* Modal da Imagem */}
+      {selectedImage && (
+        <motion.div
+          className="fixed inset-0 flex items-center justify-center z-50"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          onClick={() => setSelectedImage(null)}
+        >
+          {/* Fundo borrado */}
+          <div className="absolute inset-0 backdrop-blur-sm bg-white/30"></div>
+
+          {/* Imagem animada */}
+          <motion.img
+            src={selectedImage}
+            alt="Zoom"
+            className="max-h-[90%] max-w-[90%] rounded-lg shadow-2xl z-10 cursor-pointer"
+            initial={{ scale: 0.5, x: '-50vw', y: '-50vh', opacity: 0 }}
+            animate={{ scale: 1, x: 0, y: 0, opacity: 1 }}
+            exit={{ scale: 0.5, x: '50vw', y: '50vh', opacity: 0 }}
+            transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+            onClick={(e) => e.stopPropagation()} // evita fechar ao clicar na imagem
+          />
+        </motion.div>
+      )}
+
     </motion.div>
   );
 };

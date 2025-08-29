@@ -1,49 +1,58 @@
-import React from 'react';
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Star } from 'lucide-react';
-import { Link } from 'react-router-dom';
 
 const ProductCard = ({ product }) => {
-  // preço tratado
-  const productPrice =
-    product.price !== undefined
-      ? `R$ ${Number(product.price).toFixed(2)}`
-      : "Preço indisponível";
+  const navigate = useNavigate();
+  const [currentImage, setCurrentImage] = useState(
+    product.images?.[0] || product.image || ''
+  );
 
   return (
     <motion.div
-      className="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-200/50 cursor-pointer"
-      whileHover={{
-        y: -5,
-        boxShadow:
-          "0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)",
-      }}
+      className="bg-white rounded-xl shadow p-3 relative group cursor-pointer overflow-hidden"
+      initial={{ opacity: 0, scale: 0.9 }}
+      animate={{ opacity: 1, scale: 1 }}
       transition={{ duration: 0.3 }}
+      onClick={() => navigate(`/products/${product.id}`)}
     >
-      <Link to={`/products/${product.id}`}>
-        {/* Imagem */}
+      {/* Imagem principal */}
+      {currentImage ? (
         <img
-          src={product.image}
+          src={currentImage}
           alt={product.name}
-          className="w-full h-32 sm:h-40 object-cover rounded"
+          className="w-full h-32 sm:h-40 object-cover rounded-lg mb-2"
         />
-
-
-        {/* Conteúdo */}
-        <div className="p-5">
-          <h3 className="text-lg font-semibold text-gray-800 mb-2 truncate">
-            {product.name || "Produto sem nome"}
-          </h3>
-          <p className="text-sm text-gray-500 mb-3">
-            {product.category || "Sem categoria"}
-          </p>
-
-          {/* Preço */}
-          <div className="flex items-center justify-between">
-            <span className="text-xl font-bold text-blue-600">{productPrice}</span>
-          </div>
+      ) : (
+        <div className="h-32 sm:h-40 w-full bg-gray-100 rounded-lg mb-2 flex items-center justify-center text-gray-400">
+          Sem imagem
         </div>
-      </Link>
+      )}
+
+      {/* Informações */}
+      <h3 className="font-bold text-sm sm:text-base">{product.name}</h3>
+      <p className="text-gray-600 text-xs sm:text-sm">{product.category}</p>
+      <p className="text-green-600 font-bold text-sm">R$ {product.price?.toFixed(2)}</p>
+
+      {/* Miniaturas se houver várias imagens */}
+      {product.images && product.images.length > 1 && (
+        <div className="flex gap-1 mt-2">
+          {product.images.map((img, idx) => (
+            <div
+              key={idx}
+              className={`w-6 h-6 rounded-full border ${
+                currentImage === img ? 'border-blue-600' : 'border-gray-300'
+              } overflow-hidden cursor-pointer`}
+              onClick={(e) => {
+                e.stopPropagation();
+                setCurrentImage(img);
+              }}
+            >
+              <img src={img} alt={`Mini ${idx}`} className="w-full h-full object-cover" />
+            </div>
+          ))}
+        </div>
+      )}
     </motion.div>
   );
 };

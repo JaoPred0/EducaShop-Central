@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { ShoppingCart, XCircle, Plus, Minus } from 'lucide-react';
+import { ShoppingCart } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import { auth } from '../firebase/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
+import CartItemCard from '../components/CartItemCard';
 
 const CartPage = () => {
   const { cartItems, removeFromCart, updateQuantity, cartTotal } = useCart();
@@ -13,23 +14,13 @@ const CartPage = () => {
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      if (!currentUser) {
-        // Redireciona para login se não estiver logado
-        navigate('/login');
-      } else {
-        setUser(currentUser);
-      }
+      if (!currentUser) navigate('/login');
+      else setUser(currentUser);
     });
     return () => unsubscribe();
   }, [navigate]);
 
-  const totalItems = cartItems.reduce((acc, item) => acc + item.quantity, 0);
-  const shipping = totalItems > 0 ? 15.0 : 0;
-  const total = cartTotal + shipping;
-
-  if (!user) {
-    return null; // ou um loader enquanto verifica autenticação
-  }
+  if (!user) return null;
 
   return (
     <motion.div
@@ -72,28 +63,12 @@ const CartPage = () => {
             <h2 className="text-2xl font-bold text-gray-800 mb-6">Itens no Carrinho</h2>
             <div className="space-y-6">
               {cartItems.map((item) => (
-                <motion.div
+                <CartItemCard
                   key={item.id}
-                  className="flex items-center border-b border-gray-200 pb-4 last:border-b-0 last:pb-0"
-                >
-                  <img src={item.image} alt={item.name} className="w-24 h-auto rounded-lg mr-4" />
-                  <div className="flex-1">
-                    <h3 className="text-lg font-semibold text-gray-800">{item.name}</h3>
-                    <p className="text-gray-600">R$ {item.price.toFixed(2)}</p>
-                    <div className="flex items-center mt-2">
-                      <button onClick={() => updateQuantity(item.id, item.quantity - 1)} className="p-1 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-600">
-                        <Minus className="w-4 h-4" />
-                      </button>
-                      <span className="mx-3 font-medium">{item.quantity}</span>
-                      <button onClick={() => updateQuantity(item.id, item.quantity + 1)} className="p-1 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-600">
-                        <Plus className="w-4 h-4" />
-                      </button>
-                    </div>
-                  </div>
-                  <button onClick={() => removeFromCart(item.id)} className="text-red-500 hover:text-red-700">
-                    <XCircle className="w-6 h-6" />
-                  </button>
-                </motion.div>
+                  item={item}
+                  updateQuantity={updateQuantity}
+                  removeFromCart={removeFromCart}
+                />
               ))}
             </div>
           </div>
@@ -101,11 +76,9 @@ const CartPage = () => {
           {/* Resumo do pedido */}
           <div className="lg:col-span-1 bg-white rounded-xl shadow-lg p-6 border border-gray-200/50 h-fit">
             <h2 className="text-2xl font-bold text-gray-800 mb-6">Resumo do Pedido</h2>
-            <div className="space-y-3 text-gray-700 mb-6">
-              <div className="flex justify-between text-xl font-bold border-t border-gray-200 pt-3 mt-3">
-                <span>Total:</span>
-                <span>R$ {cartTotal.toFixed(2)}</span>
-              </div>
+            <div className="flex justify-between text-xl font-bold text-gray-700 mb-6 border-t border-gray-200 pt-3">
+              <span>Total:</span>
+              <span>R$ {cartTotal.toFixed(2)}</span>
             </div>
             <button
               onClick={() => navigate('/checkout')}
