@@ -86,7 +86,7 @@ Atendimento dedicado e materiais customizados conforme sua necessidade.
 ---
 
 ## ⚡ Versão
-**EducaShop Central v1.6**  
+**EducaShop Central v1.7**  
 Sua parceira na jornada educacional.  
 
 ---

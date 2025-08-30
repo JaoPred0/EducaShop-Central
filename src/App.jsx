@@ -20,6 +20,8 @@ import CheckoutPage from './pages/CheckoutPage';
 import VerifyEmailPage from './pages/VerifyEmailPage';
 import ResetPasswordPage from './pages/ResetPasswordPage';
 import Sobre from './pages/Sobre';
+import CategoryProductsPage from './pages/CategoryProductsPage';
+import ComingSoon from './pages/ComingSoon';
 
 export default function App() {
   const [user, setUser] = useState(null);
@@ -67,6 +69,8 @@ export default function App() {
                     <Route path="/checkout" element={<CheckoutPage />} />
                     <Route path="/verify-email" element={<VerifyEmailPage />} />
                     <Route path="/reset-password" element={<ResetPasswordPage />} />
+                    <Route path="/category/:category" element={<CategoryProductsPage />} />
+                    <Route path="/coming-soon" element={<ComingSoon />} />
                     <Route path="*" element={<NotFoundPage />} />
                   </Routes>
                 </main>

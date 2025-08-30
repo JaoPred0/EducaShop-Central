@@ -1,15 +1,54 @@
 import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
 import ProductCard from '../components/ProductCard';
 import { db } from '../firebase/firebase';
 import { collection, getDocs, query, limit } from 'firebase/firestore';
+import RowSection from '../components/RowSection';
+const categories = [
+  { name: 'Apostilas', slug: 'apostilas' },
+  { name: 'Resumos', slug: 'resumos' },
+  { name: 'Exercícios', slug: 'exercicios' },
+  { name: 'Simulados', slug: 'simulados' },
+  { name: 'Livros', slug: 'livros' },
+  { name: 'Jogos Educativos', slug: 'jogos-educativos' },
+  { name: 'Vídeos', slug: 'videos' },
+  { name: 'Infográficos', slug: 'infograficos' },
+  { name: 'Mapas Mentais', slug: 'mapas-mentais' },
+  { name: 'Fichas', slug: 'fichas' },
+  { name: 'Slides', slug: 'slides' },
+  { name: 'Planilhas', slug: 'planilhas' },
+  { name: 'Quizzes', slug: 'quizzes' },
+  { name: 'Resenhas', slug: 'resenhas' },
+  { name: 'Artigos', slug: 'artigos' },
+  { name: 'Laboratórios', slug: 'laboratorios' },
+  { name: 'Projetos', slug: 'projetos' },
+  { name: 'Cadernos de Atividades', slug: 'cadernos-atividades' },
+  { name: 'Trabalhos Prontos', slug: 'trabalhos-prontos' },
+  { name: 'Guias de Estudo', slug: 'guias-estudo' },
+  { name: 'Listas de Exercícios', slug: 'listas-exercicios' },
+  { name: 'Conteúdos Interativos', slug: 'conteudos-interativos' },
+  { name: 'Tutoriais', slug: 'tutoriais' },
+  { name: 'Exames Anteriores', slug: 'exames-anteriores' },
+  { name: 'Atividades de Revisão', slug: 'atividades-revisao' },
+  { name: 'Desafios', slug: 'desafios' },
+  { name: 'Recursos Extras', slug: 'recursos-extras' }
+];
+
 
 const HomePage = () => {
   const [loading, setLoading] = useState(true);
   const [featuredProducts, setFeaturedProducts] = useState([]);
+  const [showAll, setShowAll] = useState(false);
 
+
+  // Quantas linhas mostrar inicialmente no desktop
+  const maxRows = 2;
+  const itemsPerRow = 5; // colunas no grid desktop
+  const maxItems = maxRows * itemsPerRow;
+
+  const displayedCategories = showAll ? categories : categories.slice(0, maxItems);
   useEffect(() => {
     const fetchFeaturedProducts = async () => {
       try {
@@ -32,42 +71,10 @@ const HomePage = () => {
 
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }}>
-      {/* Hero Section */}
-      <section className="relative bg-gradient-to-br from-blue-500 to-purple-600 text-white py-20 md:py-32 overflow-hidden">
-        <div className="container mx-auto px-4 text-center relative z-10">
-          <motion.h2
-            className="text-4xl md:text-6xl font-extrabold mb-4 leading-tight"
-            initial={{ y: -50, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ delay: 0.2, duration: 0.6 }}
-          >
-            Desvende o Conhecimento
-          </motion.h2>
-          <motion.p
-            className="text-lg md:text-xl mb-8 max-w-2xl mx-auto"
-            initial={{ y: 50, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ delay: 0.4, duration: 0.6 }}
-          >
-            Sua jornada para o aprendizado começa aqui. Materiais de estudo de alta qualidade para todos os níveis.
-          </motion.p>
-          <motion.div
-            initial={{ scale: 0.8, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ delay: 0.6, duration: 0.6 }}
-          >
-            <Link
-              to="/products"
-              className="inline-flex items-center bg-white text-blue-600 px-8 py-4 rounded-full text-lg font-bold shadow-lg hover:shadow-xl hover:bg-gray-100 transition-all duration-300"
-            >
-              Explorar Produtos
-              <ArrowRight className="ml-2 w-5 h-5" />
-            </Link>
-          </motion.div>
-        </div>
-      </section>
 
-      {/* Featured Products */}
+      {/* Hero Section */}
+      <RowSection />
+
       <section className="container mx-auto px-4 py-12">
         <motion.h2
           className="text-3xl font-bold text-gray-800 mb-8 text-center"
@@ -75,16 +82,71 @@ const HomePage = () => {
           animate={{ y: 0, opacity: 1 }}
           transition={{ delay: 0.8, duration: 0.5 }}
         >
+          Categorias
+        </motion.h2>
+
+        {/* GRID desktop */}
+        <div className="hidden md:grid md:grid-cols-5 gap-6">
+          <AnimatePresence>
+            {displayedCategories.map(cat => (
+              <motion.div
+                key={cat.slug}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                transition={{ duration: 0.3 }}
+              >
+                <Link
+                  to={`/category/${cat.slug}`}
+                  className="bg-blue-100 hover:bg-blue-200 text-blue-800 font-semibold py-4 px-6 rounded-lg text-center transition-all duration-300"
+                >
+                  {cat.name}
+                </Link>
+              </motion.div>
+            ))}
+          </AnimatePresence>
+        </div>
+
+        {/* SCROLL horizontal para mobile */}
+        <div className="flex md:hidden space-x-4 overflow-x-auto scrollbar-hide py-2">
+          {categories.map(cat => (
+            <Link
+              key={cat.slug}
+              to={`/category/${cat.slug}`}
+              className="flex-shrink-0 bg-blue-100 hover:bg-blue-200 text-blue-800 font-semibold py-4 px-6 rounded-lg text-center transition-all duration-300 min-w-[120px]"
+            >
+              {cat.name}
+            </Link>
+          ))}
+        </div>
+
+        {/* Botão Mostrar Mais / Menos */}
+        {categories.length > maxItems && (
+          <div className="text-center mt-6 md:block hidden">
+            <button
+              onClick={() => setShowAll(!showAll)}
+              className="bg-blue-600 text-white font-semibold py-2 px-6 rounded-lg hover:bg-blue-700 transition-colors duration-300"
+            >
+              {showAll ? 'Mostrar Menos' : 'Mostrar Mais'}
+            </button>
+          </div>
+        )}
+      </section>
+
+      {/* Featured Products */}
+      <section className="container mx-auto px-4 py-12">
+        <motion.h2 className="text-3xl font-bold text-gray-800 mb-8 text-center"
+          initial={{ y: -20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ delay: 1, duration: 0.5 }}
+        >
           Destaques da Semana
         </motion.h2>
 
         {loading ? (
           <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {[...Array(4)].map((_, i) => (
-              <div
-                key={i}
-                className="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-200/50 animate-pulse"
-              >
+              <div key={i} className="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-200/50 animate-pulse">
                 <div className="w-full h-32 sm:h-40 bg-gray-200"></div>
                 <div className="p-3">
                   <div className="h-5 bg-gray-200 rounded w-3/4 mb-2"></div>
@@ -103,16 +165,12 @@ const HomePage = () => {
         )}
 
         <motion.div className="text-center mt-10">
-          <Link
-            to="/products"
-            className="inline-flex items-center text-blue-600 font-semibold hover:underline"
-          >
+          <Link to="/products" className="inline-flex items-center text-blue-600 font-semibold hover:underline">
             Ver todos os produtos
             <ArrowRight className="ml-2 w-4 h-4" />
           </Link>
         </motion.div>
       </section>
-
     </motion.div>
   );
 };
