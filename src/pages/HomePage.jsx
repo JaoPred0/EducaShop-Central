@@ -7,7 +7,7 @@ import { db } from '../firebase/firebase';
 import { collection, getDocs, query, limit } from 'firebase/firestore';
 import RowSection from '../components/RowSection';
 const categories = [
-  { name: 'Apostilas', slug: 'apostilas' },
+  { name: 'Apostilas', slug: 'Apostilas' },
   { name: 'Resumos', slug: 'resumos' },
   { name: 'Exercícios', slug: 'exercicios' },
   { name: 'Simulados', slug: 'simulados' },
