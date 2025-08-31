@@ -22,6 +22,8 @@ import ResetPasswordPage from './pages/ResetPasswordPage';
 import Sobre from './pages/Sobre';
 import CategoryProductsPage from './pages/CategoryProductsPage';
 import ComingSoon from './pages/ComingSoon';
+import PagamentoAguardando from './pages/PagamentoAguardando';
+import CompraSucesso from './pages/CompraSucesso';
 
 export default function App() {
   const [user, setUser] = useState(null);
@@ -71,6 +73,9 @@ export default function App() {
                     <Route path="/reset-password" element={<ResetPasswordPage />} />
                     <Route path="/category/:category" element={<CategoryProductsPage />} />
                     <Route path="/coming-soon" element={<ComingSoon />} />
+                    <Route path="/checkout" element={<CheckoutPage />} />
+                    <Route path="/aguardando/:orderId" element={<PagamentoAguardando />} />
+                    <Route path="/sucesso/:orderId" element={<CompraSucesso />} />
                     <Route path="*" element={<NotFoundPage />} />
                   </Routes>
                 </main>

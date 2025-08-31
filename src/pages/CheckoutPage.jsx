@@ -1,11 +1,11 @@
 import React, { useMemo, useState } from 'react';
 import { jsPDF } from 'jspdf';
-import { useCart } from '../context/CartContext'; // Mantenha se estiver usando CartContext
-import { collection, addDoc, serverTimestamp } from 'firebase/firestore'; // Mantenha se estiver usando Firebase
-import { db } from '../firebase/firebase'; // Mantenha se estiver usando Firebase
-import { useLocation, useNavigate } from 'react-router-dom'; // Adicionado useNavigate
-import { motion } from 'framer-motion'; // Para as animações
-import { Download, MessageSquare, CheckCircle, XCircle } from 'lucide-react'; // Ícones Lucide
+import { useCart } from '../context/CartContext';
+import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { db } from '../firebase/firebase';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
+import { Download, MessageSquare, CheckCircle, XCircle } from 'lucide-react';
 
 const brl = (n) =>
   (Number(n) || 0).toLocaleString('pt-BR', {
@@ -18,33 +18,32 @@ const genOrderId = () =>
 
 export default function CheckoutPagePDF() {
   const location = useLocation();
-  const navigate = useNavigate(); // Inicializa useNavigate
+  const navigate = useNavigate();
   const productFromBuyNow = location.state?.product || null;
 
-  // const { cartItems, cartTotal } = useCart(); // Descomente se estiver usando CartContext
+  const { cartItems, cartTotal } = useCart();
   const [orderId] = useState(genOrderId);
   const [customerName, setCustomerName] = useState('');
   const [showSuccess, setShowSuccess] = useState(false);
   const [showError, setShowError] = useState(false);
 
-  // Dados de mock para simular o carrinho/produto, já que não posso acessar seu Firebase/Context
-  const mockCartItems = [
-    { id: '1', name: 'Teclado Mecânico RGB Pro', price: 399.99, quantity: 1 },
-    { id: '2', name: 'Mouse Gamer Ergonômico', price: 149.90, quantity: 2 },
-  ];
-  const mockCartTotal = mockCartItems.reduce((acc, item) => acc + item.price * item.quantity, 0);
-
-  // Se veio de "Comprar Agora", usa só 1 produto
   const items = productFromBuyNow
     ? [{ ...productFromBuyNow, quantity: 1 }]
-    : mockCartItems; // Usando mockCartItems
-  const total = productFromBuyNow ? productFromBuyNow.price : mockCartTotal; // Usando mockCartTotal
+    : cartItems;
+
+  const total = productFromBuyNow
+    ? productFromBuyNow.price
+    : cartTotal;
 
   const chavePix = '67996610494';
   const whatsapp = '5567996610494';
 
   const waText = useMemo(
-    () => [`NÚMERO do pedido: ${orderId}`, `Nome: ${customerName}`, `Total: ${brl(total)}`],
+    () => [
+      `NÚMERO do pedido: ${orderId}`,
+      `Nome: ${customerName}`,
+      `Total: ${brl(total)}`
+    ],
     [orderId, customerName, total]
   );
 
@@ -53,32 +52,70 @@ export default function CheckoutPagePDF() {
     const marginX = 40;
     let y = 60;
 
-    // Cabeçalho
-    doc.setFillColor(99, 102, 241); // Cor mais vibrante
-    doc.rect(0, 0, 595, 60, 'F');
+    // Cores da logo (roxo e azul)
+    const primaryColor = [102, 51, 153]; // Roxo
+    const secondaryColor = [0, 153, 204]; // Azul
+    const textColor = [50, 50, 50]; // Cinza escuro para o texto principal
+
+    // Adicionar uma fonte mais moderna (ex: Open Sans ou Lato - precisa ser adicionada ao jsPDF)
+    // Para usar fontes personalizadas, você precisa carregar os arquivos .ttf e usar doc.addFont()
+    // Por simplicidade, vou usar uma das fontes padrão do jsPDF que pareça mais "moderna"
+    // 'helvetica' é uma boa opção, mas 'times' ou 'courier' também estão disponíveis.
+    // Para uma fonte realmente personalizada, você precisaria de algo como:
+    // doc.addFont('path/to/OpenSans-Regular.ttf', 'OpenSans', 'normal');
+    // doc.setFont('OpenSans', 'normal');
+    // Por enquanto, vamos manter 'helvetica' e focar nos outros detalhes.
+
+    // Cabeçalho com cores da logo e nome da loja
+    doc.setFillColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+    doc.rect(0, 0, 595, 80, 'F');
+
+    const logoBase64 = 'https://utfs.io/f/2vMRHqOYUHc0iYIjdDU3SvywDhA4KtNVCgeG7fQn92ZEUMjC';
+    if (logoBase64) {
+      doc.addImage(logoBase64, 'PNG', marginX, 15, 50, 50);
+    }
+
     doc.setTextColor(255, 255, 255)
       .setFont('helvetica', 'bold')
-      .setFontSize(20);
-    doc.text('EducaShop - Comprovante de Pedido', 300, 40, { align: 'center' });
+      .setFontSize(24);
+    doc.text('EducaShop Central', 300, 45, { align: 'center' });
 
-    // Dados básicos
-    doc.setTextColor(0, 0, 0)
+    doc.setFontSize(16);
+    doc.text('Comprovante de Pedido', 300, 65, { align: 'center' });
+
+    // Dados básicos do pedido
+    doc.setTextColor(textColor[0], textColor[1], textColor[2])
       .setFont('helvetica', 'normal')
       .setFontSize(11);
-    y += 30;
-    doc.text(`Pedido: ${orderId}`, marginX, y);
+    y = 100;
+    doc.text(`Pedido ID: ${orderId}`, marginX, y);
     y += 16;
-    doc.text(`Nome: ${customerName}`, marginX, y);
+    doc.text(`Nome do Cliente: ${customerName}`, marginX, y);
     y += 16;
-    doc.text(`Data/Hora: ${new Date().toLocaleString('pt-BR')}`, marginX, y);
+    doc.text(`Data/Hora do Pedido: ${new Date().toLocaleString('pt-BR')}`, marginX, y);
+    y += 16;
+    doc.text(`Status do Pedido: Pendente de Pagamento`, marginX, y); // Detalhe adicional
 
-    // Produtos
-    y += 20;
-    doc.setFont('helvetica', 'bold').setFontSize(13).text('Produtos', marginX, y);
-    y += 14;
-    doc.setFont('helvetica', 'normal').setFontSize(11);
+    // Seção de Produtos
+    y += 30;
+    doc.setFont('helvetica', 'bold').setFontSize(14).text('Detalhes dos Produtos', marginX, y);
+    y += 18;
+
+    // Tabela de produtos
+    doc.setFont('helvetica', 'bold').setFontSize(10);
+    doc.text('Produto', marginX + 10, y);
+    doc.text('Qtd', 350, y, { align: 'center' });
+    doc.text('Preço Unit.', 450, y, { align: 'center' });
+    doc.text('Subtotal', 555, y, { align: 'right' });
+    y += 5;
+    doc.line(marginX, y, 555, y); // Linha separadora
+    y += 15;
+
+    doc.setFont('helvetica', 'normal').setFontSize(10);
     items.forEach((item) => {
-      doc.text(`${item.quantity}x ${item.name}`, marginX, y);
+      doc.text(item.name, marginX + 10, y);
+      doc.text(item.quantity.toString(), 350, y, { align: 'center' });
+      doc.text(brl(item.price), 450, y, { align: 'center' });
       doc.text(brl(item.price * item.quantity), 555, y, { align: 'right' });
       y += 16;
     });
@@ -87,37 +124,40 @@ export default function CheckoutPagePDF() {
     y += 10;
     doc.line(marginX, y, 555, y);
     y += 20;
-    doc.setFont('helvetica', 'bold').text('Total', marginX, y);
+    doc.setFont('helvetica', 'bold').setFontSize(14).text('Total do Pedido', marginX, y);
     doc.text(brl(total), 555, y, { align: 'right' });
 
-    // Pagamento
+    // Seção de Pagamento
     y += 30;
     doc.setFont('helvetica', 'bold')
       .setFontSize(14)
-      .setTextColor(99, 102, 241); // Cor mais vibrante
+      .setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
     doc.text('Informações de Pagamento (PIX)', marginX, y);
     y += 18;
     doc.setFont('helvetica', 'normal')
       .setFontSize(12)
-      .setTextColor(0, 0, 0);
+      .setTextColor(textColor[0], textColor[1], textColor[2]);
     doc.text(`Chave PIX: ${chavePix}`, marginX, y);
+    y += 16;
+    doc.text(`Tipo de Pagamento: PIX - Chave Aleatória`, marginX, y); // Detalhe adicional
 
-    // Instruções
+    // Instruções para Finalização
     y += 30;
     doc.setFont('helvetica', 'bold')
       .setFontSize(13)
-      .setTextColor(0, 0, 0);
+      .setTextColor(textColor[0], textColor[1], textColor[2]);
     doc.text('Instruções para Finalização', marginX, y);
     doc.setFont('helvetica', 'normal').setFontSize(11);
 
     y += 16;
     const wrap = (txt) => doc.splitTextToSize(txt, 515 - marginX);
     [
-      `1) No WhatsApp, informe seu NOME e o NÚMERO do pedido: ${orderId}.`,
-      '2) Você receberá os dados do comprovante do carrinho.',
-      '3) Enviaremos as informações de pagamento via PIX.',
-      '4) Efetue o pagamento e envie o comprovante via WhatsApp.',
-      '5) Após validação, seu pedido será liberado e a confirmação enviada pelo WhatsApp.',
+      `1) No WhatsApp, informe seu NOME completo e o NÚMERO do pedido: ${orderId}.`,
+      '2) Você receberá os dados do comprovante do carrinho e a confirmação dos itens.',
+      '3) Enviaremos as informações de pagamento via PIX, incluindo um QR Code para facilitar.',
+      '4) Efetue o pagamento e envie o comprovante de transação via WhatsApp para validação.',
+      '5) Após a validação do pagamento, seu pedido será liberado e a confirmação final enviada pelo WhatsApp.',
+      '6) Em caso de dúvidas ou problemas, entre em contato conosco pelo WhatsApp.', // Detalhe adicional
     ].forEach((s) => {
       wrap(s).forEach((line) => {
         doc.text(line, marginX, y);
@@ -126,13 +166,14 @@ export default function CheckoutPagePDF() {
       y += 4;
     });
 
+    // Rodapé com informações de contato e agradecimento
     doc.setFontSize(9).setTextColor(100);
-    doc.text('Obrigado por comprar na EducaShop!', 300, 820, {
-      align: 'center',
-    });
+    doc.text('Obrigado por comprar na EducaShop Central!', 300, 800, { align: 'center' });
+    doc.text(`Contato: WhatsApp ${whatsapp} | Email: educashopcentral@gmail.com`, 300, 815, { align: 'center' });
 
     return doc;
   };
+  const [isWaiting, setIsWaiting] = useState(false);
 
   const downloadPdf = () => {
     const doc = buildPdf();
@@ -140,17 +181,22 @@ export default function CheckoutPagePDF() {
   };
 
   const handleRequestPayment = async () => {
+    if (isWaiting) return; // Bloqueia se estiver no cooldown
+
     if (!customerName.trim()) {
       setShowError(true);
       setTimeout(() => setShowError(false), 3000);
       return;
     }
 
+    setIsWaiting(true); // Ativa cooldown
+    setTimeout(() => setIsWaiting(false), 15000); // 15 segundos
+
     const doc = buildPdf();
     const pdfBase64 = doc.output('datauristring');
 
     try {
-      await addDoc(collection(db, 'orders'), {
+      const docRef = await addDoc(collection(db, 'orders'), {
         orderId,
         customerName,
         items,
@@ -160,20 +206,14 @@ export default function CheckoutPagePDF() {
         createdAt: serverTimestamp(),
       });
 
-      window.open(
-        `https://wa.me/${whatsapp}?text=${encodeURIComponent(waText.join('\n'))}`,
-        '_blank'
-      );
-      setShowSuccess(true);
-      setTimeout(() => setShowSuccess(false), 3000);
-      // alert('Pedido enviado ao dashboard e WhatsApp aberto para solicitar pagamento.');
+      navigate(`/aguardando/${docRef.id}`, { state: { whatsapp, waText: waText.join('\n') } });
     } catch (error) {
       console.error(error);
       setShowError(true);
       setTimeout(() => setShowError(false), 3000);
-      // alert('Erro ao salvar o pedido.');
     }
   };
+
 
   return (
     <motion.div
@@ -241,13 +281,19 @@ export default function CheckoutPagePDF() {
 
           <motion.button
             onClick={handleRequestPayment}
-            className="w-full bg-gradient-to-r from-indigo-500 to-purple-600 text-white py-4 rounded-xl font-bold text-lg shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center gap-2"
-            whileHover={{ scale: 1.02, y: -2 }}
-            whileTap={{ scale: 0.98 }}
+            disabled={isWaiting}
+            className={`w-full text-white py-4 rounded-xl font-bold text-lg shadow-lg flex items-center justify-center gap-2 transition-all duration-300
+    ${isWaiting
+                ? 'bg-gray-400 cursor-not-allowed'
+                : 'bg-gradient-to-r from-indigo-500 to-purple-600 hover:shadow-xl'
+              }`}
+            whileHover={!isWaiting ? { scale: 1.02, y: -2 } : {}}
+            whileTap={!isWaiting ? { scale: 0.98 } : {}}
           >
             <MessageSquare className="w-6 h-6" />
-            Solicitar Pagamento (WhatsApp)
+            {isWaiting ? 'Aguarde 15s...' : 'Solicitar Pagamento (WhatsApp)'}
           </motion.button>
+
         </div>
 
         {showSuccess && (

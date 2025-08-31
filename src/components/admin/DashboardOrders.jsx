@@ -3,9 +3,18 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Package, CheckCircle, XCircle, Download, ShoppingCart, User, Tag, DollarSign, List } from 'lucide-react';
 import { db } from '../../firebase/firebase';
 import { collection, query, orderBy, onSnapshot, doc, updateDoc, deleteDoc } from 'firebase/firestore';
+import { jsPDF } from 'jspdf'; // Importar jsPDF aqui também
+
+// Função brl movida para fora do componente para ser acessível globalmente no arquivo
+const brl = (n) =>
+  (Number(n) || 0).toLocaleString('pt-BR', {
+    style: 'currency',
+    currency: 'BRL',
+  });
 
 export default function DashboardOrders() {
   const [orders, setOrders] = useState([]);
+
   const handleRemoveOrder = async (orderId) => {
     if (!window.confirm('Deseja realmente remover este pedido?')) return;
     try {
@@ -18,27 +27,134 @@ export default function DashboardOrders() {
   };
 
   useEffect(() => {
-    // Se você tiver o Firebase configurado, descomente e use o código abaixo:
     const q = query(collection(db, 'orders'), orderBy('createdAt', 'desc'));
     const unsub = onSnapshot(q, (snapshot) => {
       setOrders(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
     });
     return () => unsub();
-
-    // Enquanto isso, para que o design apareça, vamos usar um array vazio.
-    // Quando você conectar seu Firebase, ele vai preencher isso automaticamente.
-    setOrders([]);
   }, []);
 
-  const downloadPdf = (pdfBase64, orderId) => {
-    if (!pdfBase64) {
-      alert('PDF não disponível para este pedido.');
-      return;
+  const buildPdf = (order) => {
+    const doc = new jsPDF({ unit: 'pt', format: 'a4' });
+    const marginX = 40;
+    let y = 60;
+
+    // Cores da logo (roxo e azul)
+    const primaryColor = [102, 51, 153]; // Roxo
+    const secondaryColor = [0, 153, 204]; // Azul
+    const textColor = [50, 50, 50]; // Cinza escuro para o texto principal
+
+    // Cabeçalho com cores da logo e nome da loja
+    doc.setFillColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+    doc.rect(0, 0, 595, 80, 'F'); 
+    
+    const logoBase64 = 'https://utfs.io/f/2vMRHqOYUHc0iYIjdDU3SvywDhA4KtNVCgeG7fQn92ZEUMjC'; 
+    if (logoBase64) {
+      doc.addImage(logoBase64, 'PNG', marginX, 15, 50, 50); 
     }
-    const link = document.createElement('a');
-    link.href = pdfBase64;
-    link.download = `${orderId} - comprovante.pdf`;
-    link.click();
+
+    doc.setTextColor(255, 255, 255)
+      .setFont('helvetica', 'bold')
+      .setFontSize(24); 
+    doc.text('EducaShop Central', 300, 45, { align: 'center' }); 
+
+    doc.setFontSize(16);
+    doc.text('Comprovante de Pedido', 300, 65, { align: 'center' }); 
+
+    // Dados básicos do pedido
+    doc.setTextColor(textColor[0], textColor[1], textColor[2])
+      .setFont('helvetica', 'normal')
+      .setFontSize(11);
+    y = 100; 
+    doc.text(`Pedido ID: ${order.orderId}`, marginX, y);
+    y += 16;
+    doc.text(`Nome do Cliente: ${order.customerName}`, marginX, y);
+    y += 16;
+    doc.text(`Data/Hora do Pedido: ${order.createdAt ? new Date(order.createdAt.toDate()).toLocaleString('pt-BR') : 'N/A'}`, marginX, y);
+    y += 16;
+    doc.text(`Status do Pedido: ${order.status}`, marginX, y); // Detalhe adicional
+
+    // Seção de Produtos
+    y += 30;
+    doc.setFont('helvetica', 'bold').setFontSize(14).text('Detalhes dos Produtos', marginX, y);
+    y += 18;
+
+    // Tabela de produtos
+    doc.setFont('helvetica', 'bold').setFontSize(10);
+    doc.text('Produto', marginX + 10, y);
+    doc.text('Qtd', 350, y, { align: 'center' });
+    doc.text('Preço Unit.', 450, y, { align: 'center' });
+    doc.text('Subtotal', 555, y, { align: 'right' });
+    y += 5;
+    doc.line(marginX, y, 555, y); // Linha separadora
+    y += 15;
+
+    doc.setFont('helvetica', 'normal').setFontSize(10);
+    order.items.forEach((item) => {
+      doc.text(item.name, marginX + 10, y);
+      doc.text(item.quantity.toString(), 350, y, { align: 'center' });
+      doc.text(brl(item.price), 450, y, { align: 'center' });
+      doc.text(brl(item.price * item.quantity), 555, y, { align: 'right' });
+      y += 16;
+    });
+
+    // Total
+    y += 10;
+    doc.line(marginX, y, 555, y);
+    y += 20;
+    doc.setFont('helvetica', 'bold').setFontSize(14).text('Total do Pedido', marginX, y);
+    doc.text(brl(order.total), 555, y, { align: 'right' });
+
+    // Seção de Pagamento
+    y += 30;
+    doc.setFont('helvetica', 'bold')
+      .setFontSize(14)
+      .setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]); 
+    doc.text('Informações de Pagamento (PIX)', marginX, y);
+    y += 18;
+    doc.setFont('helvetica', 'normal')
+      .setFontSize(12)
+      .setTextColor(textColor[0], textColor[1], textColor[2]);
+    doc.text(`Chave PIX: 67996610494`, marginX, y); // Chave PIX fixa
+    y += 16;
+    doc.text(`Tipo de Pagamento: PIX - Chave Aleatória`, marginX, y); // Detalhe adicional
+
+    // Instruções para Finalização
+    y += 30;
+    doc.setFont('helvetica', 'bold')
+      .setFontSize(13)
+      .setTextColor(textColor[0], textColor[1], textColor[2]);
+    doc.text('Instruções para Finalização', marginX, y);
+    doc.setFont('helvetica', 'normal').setFontSize(11);
+
+    y += 16;
+    const wrap = (txt) => doc.splitTextToSize(txt, 515 - marginX);
+    [
+      `1) No WhatsApp, informe seu NOME completo e o NÚMERO do pedido: ${order.orderId}.`,
+      '2) Você receberá os dados do comprovante do carrinho e a confirmação dos itens.',
+      '3) Enviaremos as informações de pagamento via PIX, incluindo um QR Code para facilitar.',
+      '4) Efetue o pagamento e envie o comprovante de transação via WhatsApp para validação.',
+      '5) Após a validação do pagamento, seu pedido será liberado e a confirmação final enviada pelo WhatsApp.',
+      '6) Em caso de dúvidas ou problemas, entre em contato conosco pelo WhatsApp.', 
+    ].forEach((s) => {
+      wrap(s).forEach((line) => {
+        doc.text(line, marginX, y);
+        y += 14;
+      });
+      y += 4;
+    });
+
+    // Rodapé com informações de contato e agradecimento
+    doc.setFontSize(9).setTextColor(100);
+    doc.text('Obrigado por comprar na EducaShop Central!', 300, 800, { align: 'center' });
+    doc.text(`Contato: WhatsApp 5567996610494 | Email: educashopcentral@gmail.com`, 300, 815, { align: 'center' });
+
+    return doc;
+  };
+
+  const downloadPdf = (order) => {
+    const doc = buildPdf(order);
+    doc.save(`${order.orderId} - comprovante.pdf`);
   };
 
   const getStatusClasses = (status) => {
@@ -66,6 +182,7 @@ export default function DashboardOrders() {
         return null;
     }
   };
+
   const handleFinalizeOrder = async (orderId) => {
     try {
       const orderRef = doc(db, 'orders', orderId);
@@ -178,11 +295,10 @@ export default function DashboardOrders() {
                         {order.status || 'Desconhecido'}
                       </motion.span>
                       <motion.button
-                        onClick={() => downloadPdf(order.pdf, order.orderId)}
-                        className="flex items-center gap-2 px-5 py-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white font-semibold rounded-xl shadow-md hover:shadow-lg hover:scale-105 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                        onClick={() => downloadPdf(order)} // Passa o objeto order completo
+                        className="flex items-center gap-2 px-5 py-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white font-semibold rounded-xl shadow-md hover:shadow-lg hover:scale-105 transition-all duration-300"
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
-                        disabled={!order.pdf}
                       >
                         <Download className="w-5 h-5" />
                         Baixar PDF
