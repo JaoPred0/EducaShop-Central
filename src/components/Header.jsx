@@ -136,7 +136,7 @@ const Header = () => {
               <img src="/logo.svg" alt="EducaShop Logo" className="w-10 h-10" />
             </motion.div>
             <h1 className="text-2xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent">
-              EducaShop Central
+              EducaShop
             </h1>
           </Link>
 
