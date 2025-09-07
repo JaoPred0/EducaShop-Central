@@ -6,35 +6,7 @@ import ProductCard from '../components/ProductCard';
 import { db } from '../firebase/firebase';
 import { collection, getDocs, query, limit } from 'firebase/firestore';
 import RowSection from '../components/RowSection';
-const categories = [
-  { name: 'Apostilas', slug: 'Apostilas' },
-  { name: 'Resumos', slug: 'Resumos' },
-  { name: 'Exercícios', slug: 'Exercicios' },
-  { name: 'Simulados', slug: 'Simulados' },
-  { name: 'Livros', slug: 'Livros' },
-  { name: 'Jogos', slug: 'Jogos' },
-  { name: 'Vídeos', slug: 'Videos' },
-  { name: 'Infográficos', slug: 'Infograficos' },
-  { name: 'Mapas Mentais', slug: 'Mapas Mentais' },
-  { name: 'Fichas', slug: 'Fichas' },
-  { name: 'Slides', slug: 'Slides' },
-  { name: 'Planilhas', slug: 'Planilhas' },
-  { name: 'Quizzes', slug: 'Quizzes' },
-  { name: 'Resenhas', slug: 'Resenhas' },
-  { name: 'Artigos', slug: 'Artigos' },
-  { name: 'Laboratórios', slug: 'Laboratorios' },
-  { name: 'Projetos', slug: 'Projetos' },
-  { name: 'Cadernos de Atividades', slug: 'Cadernos Atividades' },
-  { name: 'Trabalhos Prontos', slug: 'Trabalhos Prontos' },
-  { name: 'Guias de Estudo', slug: 'Guias Estudo' },
-  { name: 'Listas de Exercícios', slug: 'Listas Exercicios' },
-  { name: 'Conteúdos Interativos', slug: 'Conteudos Interativos' },
-  { name: 'Tutoriais', slug: 'Tutoriais' },
-  { name: 'Exames Anteriores', slug: 'Exames Anteriores' },
-  { name: 'Atividades de Revisão', slug: 'Atividades Revisao' },
-  { name: 'Desafios', slug: 'Desafios' },
-  { name: 'Recursos Extras', slug: 'Recursos-extras' }
-];
+import { categories } from "../data/categorias";
 
 
 const HomePage = () => {
@@ -74,13 +46,41 @@ const HomePage = () => {
 
       {/* Hero Section */}
       <RowSection />
-
+      {/* Área de acesso */}
       <section className="container mx-auto px-4 py-12">
         <motion.h2
           className="text-3xl font-bold text-gray-800 mb-8 text-center"
           initial={{ y: -20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
-          transition={{ delay: 0.8, duration: 0.5 }}
+          transition={{ delay: 0.5, duration: 0.5 }}
+        >
+          Áreas de Acesso
+        </motion.h2>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-3xl mx-auto">
+          {/* Estudantes */}
+          <Link
+            to="/area-estudantes"
+            className="bg-green-100 hover:bg-green-200 text-green-800 font-semibold py-10 rounded-2xl text-center shadow-md transition-all duration-300"
+          >
+            Área para Estudantes
+          </Link>
+
+          {/* Professor */}
+          <Link
+            to="/area-professor"
+            className="bg-purple-100 hover:bg-purple-300 text-purple-800 font-semibold py-10 rounded-2xl text-center shadow-md transition-all duration-300"
+          >
+            Área para Professor
+          </Link>
+        </div>
+      </section>
+      <section className="container mx-auto px-4 py-12">
+        <motion.h2
+          className="text-4xl font-extrabold text-gray-900 mb-10 text-center tracking-tight"
+          initial={{ y: -20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ delay: 0.3, duration: 0.6 }}
         >
           Categorias
         </motion.h2>
@@ -88,7 +88,7 @@ const HomePage = () => {
         {/* GRID desktop */}
         <div className="hidden md:grid md:grid-cols-5 gap-6">
           <AnimatePresence>
-            {displayedCategories.map(cat => (
+            {displayedCategories.map((cat) => (
               <motion.div
                 key={cat.slug}
                 initial={{ opacity: 0, y: 20 }}
@@ -98,7 +98,9 @@ const HomePage = () => {
               >
                 <Link
                   to={`/category/${cat.slug}`}
-                  className="bg-blue-100 hover:bg-blue-200 text-blue-800 font-semibold py-4 px-6 rounded-lg text-center transition-all duration-300"
+                  className="block bg-gradient-to-br from-blue-100 to-blue-200 hover:from-blue-200 hover:to-blue-300 
+                       text-blue-900 font-semibold py-5 px-6 rounded-xl shadow-md 
+                       hover:shadow-lg transform hover:-translate-y-1 transition-all duration-300"
                 >
                   {cat.name}
                 </Link>
@@ -108,12 +110,15 @@ const HomePage = () => {
         </div>
 
         {/* SCROLL horizontal para mobile */}
-        <div className="flex md:hidden space-x-4 overflow-x-auto scrollbar-hide py-2">
-          {categories.map(cat => (
+        <div className="flex md:hidden space-x-4 overflow-x-auto scrollbar-hide py-4 px-1">
+          {categories.map((cat) => (
             <Link
               key={cat.slug}
               to={`/category/${cat.slug}`}
-              className="flex-shrink-0 bg-blue-100 hover:bg-blue-200 text-blue-800 font-semibold py-4 px-6 rounded-lg text-center transition-all duration-300 min-w-[120px]"
+              className="flex-shrink-0 min-w-[140px] text-center 
+                   bg-gradient-to-br from-blue-100 to-blue-200 hover:from-blue-200 hover:to-blue-300 
+                   text-blue-900 font-semibold py-4 px-5 rounded-xl shadow-md 
+                   hover:shadow-lg transform hover:-translate-y-1 transition-all duration-300"
             >
               {cat.name}
             </Link>
@@ -122,16 +127,17 @@ const HomePage = () => {
 
         {/* Botão Mostrar Mais / Menos */}
         {categories.length > maxItems && (
-          <div className="text-center mt-6 md:block hidden">
+          <div className="text-center mt-8 md:block hidden">
             <button
               onClick={() => setShowAll(!showAll)}
-              className="bg-blue-600 text-white font-semibold py-2 px-6 rounded-lg hover:bg-blue-700 transition-colors duration-300"
+              className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 px-7 rounded-full shadow-md transition-all duration-300"
             >
-              {showAll ? 'Mostrar Menos' : 'Mostrar Mais'}
+              {showAll ? "Mostrar Menos" : "Mostrar Mais"}
             </button>
           </div>
         )}
       </section>
+
 
       {/* Featured Products */}
       <section className="container mx-auto px-4 py-12">

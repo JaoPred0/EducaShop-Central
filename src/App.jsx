@@ -24,6 +24,8 @@ import CategoryProductsPage from './pages/CategoryProductsPage';
 import ComingSoon from './pages/ComingSoon';
 import PagamentoAguardando from './pages/PagamentoAguardando';
 import CompraSucesso from './pages/CompraSucesso';
+import ProfessorPage from './pages/ProfessorPage';
+import AlunoPage from './pages/AlunoPage';
 
 export default function App() {
   const [user, setUser] = useState(null);
@@ -76,6 +78,8 @@ export default function App() {
                     <Route path="/checkout" element={<CheckoutPage />} />
                     <Route path="/aguardando/:orderId" element={<PagamentoAguardando />} />
                     <Route path="/sucesso/:orderId" element={<CompraSucesso />} />
+                    <Route path="/area-professor" element={<ProfessorPage />} />
+                    <Route path="/area-estudantes" element={<AlunoPage />} />
                     <Route path="*" element={<NotFoundPage />} />
                   </Routes>
                 </main>
